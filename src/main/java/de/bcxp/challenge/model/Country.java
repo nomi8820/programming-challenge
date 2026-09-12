@@ -9,6 +9,12 @@ public final class Country {
     private final double area;
 
     public Country(String name, long population, double area) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Country name must not be blank");
+        }
+        if (area <= 0) {
+            throw new IllegalArgumentException("Area must be positive, was: " + area);
+        }
         this.name = name;
         this.population = population;
         this.area = area;
