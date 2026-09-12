@@ -1,8 +1,12 @@
 package de.bcxp.challenge;
 
-import de.bcxp.challenge.io.WeatherCsvReader;
+import de.bcxp.challenge.io.CountryRowMapper;
+import de.bcxp.challenge.io.CsvRecordReader;
+import de.bcxp.challenge.io.RecordReader;
+import de.bcxp.challenge.io.WeatherRowMapper;
+import de.bcxp.challenge.model.Country;
 import de.bcxp.challenge.model.WeatherRecord;
-import de.bcxp.challenge.service.SmallestTemperatureSpreadFinder;
+import de.bcxp.challenge.service.ExtremumFinder;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -20,17 +24,14 @@ public final class App {
      */
     public static void main(String... args) throws IOException {
 
-        Path weatherFile = Path.of("src/main/resources/de/bcxp/challenge/weather.csv");
+        RecordReader<WeatherRecord> weatherReader = new CsvRecordReader<>(",", new WeatherRowMapper());
+        List<WeatherRecord> weatherRecords = weatherReader.readAll(Path.of("src/main/resources/de/bcxp/challenge/weather.csv"));
+        WeatherRecord smallestSpreadDay = ExtremumFinder.findMin(weatherRecords, WeatherRecord::getTemperatureSpread);
+        System.out.printf("Day with smallest temperature spread: %d%n", smallestSpreadDay.getDay());
 
-        WeatherCsvReader reader = new WeatherCsvReader();
-        List<WeatherRecord> records = reader.read(weatherFile);
-
-        SmallestTemperatureSpreadFinder finder = new SmallestTemperatureSpreadFinder();
-        WeatherRecord result = finder.findDayWithSmallestSpread(records);
-
-        System.out.printf("Day with smallest temperature spread: %d%n", result.getDay());
-
-        String countryWithHighestPopulationDensity = "Some country"; // Your population density analysis function call …
-        System.out.printf("Country with highest population density: %s%n", countryWithHighestPopulationDensity);
+        RecordReader<Country> countryReader = new CsvRecordReader<>(";", new CountryRowMapper());
+        List<Country> countries = countryReader.readAll(Path.of("src/main/resources/de/bcxp/challenge/countries.csv"));
+        Country densestCountry = ExtremumFinder.findMax(countries, Country::getPopulationDensity);
+        System.out.printf("Country with highest population density: %s%n", densestCountry.getName());
     }
 }
